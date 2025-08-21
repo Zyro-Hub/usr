@@ -275,7 +275,7 @@
     }
 
     function iconFor(tool){
-      if (tool.image) return `<img src="${tool.image}" alt="${tool.name}" loading="lazy" decoding="async" fetchpriority="low"/>`;
+      if (tool.image) return `<img src="${tool.image}" alt="${tool.name}" loading="lazy" decoding="async" fetchpriority="low" style="width:165px;height:165px;object-fit:cover;border-radius:14px;"/>`;
       if (tool.type === 'embed') return svgThumb('play');
       if (tool.type === 'local') return svgThumb('memo');
       if ((tool.id+'').includes('image') || tool.tags?.includes('image')) return svgThumb('image');
