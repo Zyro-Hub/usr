@@ -227,7 +227,7 @@
 
     /********************************
      * Favorites (user-local only)
-     ********************************/
+     *******************************=*/
     const LS_FAV_KEY = 'zyrohub:favorites';
     const favorites = new Set(JSON.parse(localStorage.getItem(LS_FAV_KEY) || '[]'));
     function saveFav(){ localStorage.setItem(LS_FAV_KEY, JSON.stringify([...favorites])); }
