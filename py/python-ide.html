@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>⚡ Neon Hacker Python IDE — By Prashant</title>
+
+<!-- Pyodide -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+<!-- CodeMirror 5 (stable, feature-rich) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/keymap/sublime.min.js"></script>
+
+<style>
+  :root{
+    --bg:#05080a; --panel:#0a0f14; --term:#0b1117; --accent:#00ffc6; --accent2:#22e3ff;
+    --txt:#d9fff6; --muted:#9ad6c8; --danger:#ff5577; --ok:#7dffa3; --shadow:0 8px 30px #00ffc622;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+    background: radial-gradient(1200px 800px at 10% -10%, #001d1a55, transparent 60%),
+                radial-gradient(900px 600px at 110% 10%, #00132a55, transparent 50%),
+                var(--bg);
+    color:var(--txt);
+    display:flex; flex-direction:column;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 16px; border-bottom:1px solid #0f1720; background:linear-gradient(180deg,#050b10,#030609);
+    position:sticky; top:0; z-index:5;
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px;}
+  .brand .logo{
+    width:28px; height:28px; border-radius:10px; background:
+      conic-gradient(from 180deg, var(--accent), var(--accent2), var(--accent));
+    filter: drop-shadow(0 0 10px #00ffc6aa);
+  }
+  .brand span{
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent
+  }
+  .toolbar{display:flex; flex-wrap:wrap; gap:8px}
+  .btn{
+    padding:8px 12px; border-radius:12px; border:1px solid #113; background:#010409;
+    color:var(--txt); cursor:pointer; font-weight:700; letter-spacing:.2px;
+    box-shadow: var(--shadow); transition:transform .08s ease, background .15s;
+  }
+
+  /* Ensure overlay is completely hidden when .hidden is applied (stronger specificity) */
+  .overlay.hidden{
+    display:none !important;
+    visibility:hidden;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, visibility .18s;
+  }
+  .btn:hover{transform:translateY(-1px); background:#061018}
+  .btn.primary{border-color:var(--accent); color:var(--accent)}
+  .btn.danger{border-color:#ff3b6b; color:#ff6f90}
+  .btn.ghost{border-color:#123}
+  .toggle{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}
+  .hotkey{opacity:.75; font-size:11px; margin-left:4px}
+
+  .layout{flex:1; display:grid; grid-template-columns: 1.2fr .8fr 320px; gap:12px; padding:12px; min-height:0}
+  .panel{
+    background: linear-gradient(180deg, #071017, #060b11);
+    border:1px solid #0e1a22; border-radius:16px; padding:10px; display:flex; flex-direction:column; min-height:0;
+    box-shadow: var(--shadow);
+  }
+  .panel h3{margin:6px 6px 10px; font-size:13px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.6px}
+  .panel .section{display:flex; gap:8px; flex-wrap:wrap; margin:6px 6px 10px}
+  .panel .section .btn{padding:6px 10px; border-radius:10px}
+  .panel .bar{display:flex; align-items:center; gap:8px; padding:0 6px 8px 6px; flex-wrap:wrap}
+  .grow{flex:1 1 auto; min-height:0}
+
+  /* CodeMirror */
+  .CodeMirror{
+    height:100%; font-size:14px; border-radius:12px; border:1px solid #0f1d27; background:#000; color:var(--txt);
+  }
+  .cm-s-dracula .CodeMirror-cursor{border-left:2px solid var(--accent)}
+  .cm-matchhighlight, .CodeMirror-matchingbracket{background:#033a39; color:#afffdf !important; border-bottom:1px solid #0ff}
+  .cm-error{background: #3b0d12 !important;}
+  
+  /* IO areas */
+  #output{
+    background:linear-gradient(180deg,#03090d,#020608); border:1px solid #0f1d27; border-radius:12px;
+    padding:12px; font-size:13px; overflow:auto; white-space:pre-wrap; line-height:1.35;
+    box-shadow: inset 0 0 0 1px #06141c;
+  }
+  #output .ok{color:var(--ok)}
+  #output .err{color:var(--danger)}
+  #stdin{
+    width:100%; min-height:120px; resize:vertical; padding:10px; border-radius:12px; border:1px solid #0f1d27;
+    background:#02070a; color:#bff9ee; font-family:inherit; font-size:13px;
+  }
+  .hint{font-size:12px; color:#6fbfb0; margin-left:6px}
+
+  /* Tools dock */
+  .tools{display:flex; flex-direction:column; gap:10px; overflow:auto}
+  .tool{background:#060b11; border:1px solid #0e1a22; border-radius:12px; padding:10px}
+  .tool h4{margin:0 0 6px 0; font-size:12px; color:#8fead8; text-transform:uppercase; letter-spacing:.4px}
+  .tool textarea, .tool input{
+      width:100%; padding:8px; border-radius:10px; border:1px solid #0f1d27;
+      background:#02070a; color:#bff9ee; font-family:inherit; font-size:12px; resize:vertical;
+  }
+  .kv{display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center}
+  .muted{color:#78a7a0; font-size:12px}
+  .mono{font-family:inherit}
+  .pill{display:inline-block; padding:.2rem .5rem; border:1px solid #0f1d27; border-radius:999px; font-size:11px; color:#8fead8; margin-left:6px}
+  footer{padding:8px 14px; text-align:center; border-top:1px solid #0f1720; color:#68bfb0; font-size:12px}
+  .glow{text-shadow: 0 0 6px #00ffc6aa}
+  .hidden{display:none}
+
+  /* Loading overlay */
+  .overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#000000aa; z-index:20}
+  .spinner{width:56px;height:56px;border-radius:50%;border:6px solid #0b2330;border-top-color:var(--accent);animation:spin 1s linear infinite;filter:drop-shadow(0 0 10px #00ffc6aa)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo"></div>
+      <div><span class="glow">Python IDE</span> — By Prashant</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn primary" id="runBtn">▶ Run <span class="hotkey">(Ctrl/Cmd+Enter)</span></button>
+      <button class="btn ghost" id="clearOutBtn">🧹 Clear Output</button>
+      <button class="btn ghost" id="saveBtn">💾 Download .py</button>
+      <button class="btn ghost" id="openBtn">📂 Open .py</button>
+      <button class="btn ghost" id="copyCodeBtn">📋 Copy Code</button>
+      <button class="btn ghost" id="copyOutBtn">📋 Copy Output</button>
+      <button class="btn ghost" id="saveOutBtn">💾 Save Output</button>
+      <button class="btn danger" id="resetPyBtn">⟲ Reset Engine</button>
+      <label class="toggle"><input type="checkbox" id="darkToggle" checked/> Neon theme</label>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Editor -->
+    <section class="panel">
+      <div class="bar">
+        <h3>Editor</h3>
+        <span class="pill">Auto-close (),[],{},'' ,""</span>
+        <span class="pill">Autocomplete</span>
+        <span class="pill">Sublime keys</span>
+        <span class="hint">Tip: Type <code>input()</code> and provide values in <b>STDIN</b> → one line = one call</span>
+      </div>
+      <div class="grow" id="editorHost">
+        <textarea id="code"># 🔥 Welcome to Neon Hacker Python IDE
+# Try the features below:
+
+# 1) STDOUT + STDIN (each input() consumes next line from the STDIN panel)
+name = input("Enter your name: ")
+n = int(input("Enter a number: "))
+print(f"Hello, {name}! {n} squared = {n*n}")
+
+# 2) Exceptions show in red
+# raise ValueError("Boom!")
+
+# 3) File system works (in-memory via Pyodide)
+with open("hello.txt","w") as f:
+    f.write("hi from pyodide")
+print("Wrote hello.txt; listing dir:", __import__("os").listdir("."))
+
+# 4) Long loops work too
+# for i in range(5):
+#     print("Tick", i)
+</textarea>
+      </div>
+    </section>
+
+    <!-- IO -->
+    <section class="panel">
+      <div class="bar">
+        <h3>Output</h3>
+        <span class="pill">Terminal</span>
+        <span class="pill">Error highlight</span>
+      </div>
+      <div id="output" class="grow" aria-live="polite"></div>
+
+      <div class="bar" style="margin-top:10px">
+        <h3>STDIN</h3> <span class="hint">Provide lines used by <code>input()</code> (1 line per call)</span>
+      </div>
+      <textarea id="stdin" placeholder="e.g.
+Prashant
+42
+"></textarea>
+    </section>
+
+    <!-- Tools -->
+    <aside class="panel">
+      <h3>Tools & Utilities</h3>
+      <div class="tools grow">
+        <div class="tool">
+          <h4>Quick Actions</h4>
+          <div class="section">
+            <button class="btn" id="exHello">Insert: Hello</button>
+            <button class="btn" id="exFibo">Insert: Fibonacci</button>
+            <button class="btn" id="exSort">Insert: Sorting</button>
+            <button class="btn" id="beautifyBtn">Beautify Code</button>
+          </div>
+          <div class="muted">Examples replace editor content. Beautify = trim trailing spaces, normalize newlines.</div>
+        </div>
+
+        <div class="tool">
+          <h4>Base64</h4>
+          <div class="kv">
+            <textarea id="b64in" rows="3" placeholder="Text here..."></textarea>
+            <div class="section" style="flex-direction:column">
+              <button class="btn" id="b64enc">Encode</button>
+              <button class="btn" id="b64dec">Decode</button>
+            </div>
+          </div>
+          <textarea id="b64out" rows="3" placeholder="Result..." readonly></textarea>
+        </div>
+
+        <div class="tool">
+          <h4>Hash (SHA-256)</h4>
+          <textarea id="hashIn" rows="2" placeholder="Text to hash..."></textarea>
+          <button class="btn" id="hashBtn">Hash</button>
+          <input id="hashOut" readonly/>
+        </div>
+
+        <div class="tool">
+          <h4>UUID</h4>
+          <button class="btn" id="uuidBtn">Generate</button>
+          <input id="uuidOut" readonly/>
+        </div>
+
+        <div class="tool">
+          <h4>JSON Pretty</h4>
+          <textarea id="jsonIn" rows="3" placeholder='{"a":1}'></textarea>
+          <button class="btn" id="jsonBtn">Prettify</button>
+          <textarea id="jsonOut" rows="3" placeholder="Pretty JSON..." readonly></textarea>
+        </div>
+
+        <div class="tool">
+          <h4>Regex Tester</h4>
+          <input id="rePattern" placeholder="Pattern e.g. \\d+"/>
+          <textarea id="reText" rows="3" placeholder="Text to test..."></textarea>
+          <button class="btn" id="reBtn">Test</button>
+          <textarea id="reOut" rows="3" placeholder="Matches..." readonly></textarea>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>Made with 💚 by Prashant • Neon hacker UI • Pyodide-powered • No server required</footer>
+
+  <!-- Loading overlay -->
+  <div id="overlay" class="overlay hidden"><div class="spinner"></div></div>
+
+<script>
+/* ============ UI/Editor Setup ============ */
+let editor = CodeMirror.fromTextArea(document.getElementById("code"),{
+  mode:"python",
+  theme:"dracula",
+  lineNumbers:true,
+  indentUnit:4,
+  smartIndent:true,
+  autoCloseBrackets:true,
+  matchBrackets:true,
+  keyMap:"sublime",
+  extraKeys:{
+    "Ctrl-Space":"autocomplete",
+    "Ctrl-Enter": ()=>runCode(),
+    "Cmd-Enter": ()=>runCode()
+  }
+});
+// Persist code
+const CODE_KEY = "neon_python_code_v1";
+if(localStorage.getItem(CODE_KEY)){
+  editor.setValue(localStorage.getItem(CODE_KEY));
+}
+editor.on("change", ()=>{
+  localStorage.setItem(CODE_KEY, editor.getValue());
+});
+
+/* ============ Pyodide Setup ============ */
+let pyodide = null;
+let engineReady = false;
+const output = document.getElementById("output");
+const stdinEl = document.getElementById("stdin");
+const overlay = document.getElementById("overlay");
+
+function printLine(text, cls){
+  const el = document.createElement("div");
+  if(cls) el.className = cls;
+  el.textContent = text;
+  output.appendChild(el);
+  output.scrollTop = output.scrollHeight;
+}
+function clearOutput(){ output.innerHTML = ""; }
+
+async function bootPy(){
+  clearOutput();
+  overlay.classList.remove("hidden");
+  printLine("⚡ Loading Python engine (Pyodide) ...");
+  pyodide = await loadPyodide();
+  engineReady = true;
+  overlay.classList.add("hidden");
+  printLine("✅ Python ready. You can run your code now.", "ok");
+}
+bootPy();
+
+/* Provide a JS bridge for buffered STDIN (1 line per input()) */
+function buildInputBuffer(){
+  const lines = stdinEl.value.replace(/\r\n/g,"\n").split("\n");
+  let idx = 0;
+  return function getLine(){
+    if(idx >= lines.length) return "";
+    return lines[idx++];
+  }
+}
+
+/* ============ Run Code ============ */
+async function runCode(){
+  if(!engineReady){ alert("Python engine is still loading."); return; }
+  clearOutput();
+
+  // JS function that supplies input lines
+  const getBufferedInput = buildInputBuffer();
+  // Expose it to Python GLOBALS (so Python can call it directly)
+  pyodide.globals.set("getBufferedInput", getBufferedInput);
+
+  const prelude = `
+import sys, builtins, traceback, io
+_stdout = io.StringIO()
+_stderr = io.StringIO()
+sys.stdout = _stdout
+sys.stderr = _stderr
+
+def _input(prompt=''):
+    if prompt:
+        print(prompt, end='')
+    line = getBufferedInput()
+    print(line)
+    return line
+builtins.input = _input
+`;
+
+  try{
+    pyodide.globals.set("user_code", editor.getValue());
+    pyodide.runPython(prelude);
+    await pyodide.runPythonAsync(`
+try:
+    exec(user_code, {})
+except SystemExit as _e:
+    pass
+except Exception:
+    traceback.print_exc()
+out = _stdout.getvalue()
+err = _stderr.getvalue()
+    `);
+    const out = pyodide.globals.get("out");
+    const err = pyodide.globals.get("err");
+    if(out) out.split("\n").forEach(line=> line && printLine(line));
+    if(err) err.split("\n").forEach(line=> line && printLine(line, "err"));
+    if(!out && !err) printLine("• (no output)", "muted");
+  }catch(e){
+    printLine(String(e), "err");
+  }
+}
+
+/* ============ Buttons ============ */
+document.getElementById("runBtn").onclick = runCode;
+document.getElementById("clearOutBtn").onclick = clearOutput;
+
+document.getElementById("copyCodeBtn").onclick = async ()=>{
+  await navigator.clipboard.writeText(editor.getValue());
+};
+document.getElementById("copyOutBtn").onclick = async ()=>{
+  await navigator.clipboard.writeText(output.innerText);
+};
+document.getElementById("saveOutBtn").onclick = ()=>{
+  const blob = new Blob([output.innerText], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "output.txt"; a.click();
+};
+
+document.getElementById("saveBtn").onclick = ()=>{
+  const blob = new Blob([editor.getValue()], {type:"text/x-python"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "script.py";
+  a.click();
+};
+document.getElementById("openBtn").onclick = ()=>{
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".py,text/x-python";
+  inp.onchange = ()=>{ const f = inp.files[0]; f.text().then(t=>editor.setValue(t)); };
+  inp.click();
+};
+document.getElementById("resetPyBtn").onclick = async ()=>{
+  engineReady=false; pyodide = null;
+  await bootPy();
+};
+
+/* ============ Quick Examples & Beautify ============ */
+const exHello = `print("Hello, hacker!")
+name = input("your alias: ")
+print("welcome,", name)`;
+
+const exFibo = `def fib(n):
+    a, b = 0, 1
+    out = []
+    while a < n:
+        out.append(a)
+        a, b = b, a + b
+    return out
+
+print(fib(int(input("n: "))))`;
+
+const exSort = `arr = list(map(int, input("numbers (space separated): ").split()))
+print(sorted(arr))`;
+
+document.getElementById("exHello").onclick = ()=>editor.setValue(exHello);
+document.getElementById("exFibo").onclick = ()=>editor.setValue(exFibo);
+document.getElementById("exSort").onclick = ()=>editor.setValue(exSort);
+
+document.getElementById("beautifyBtn").onclick = ()=>{
+  // simple, safe tidy: trim trailing spaces & normalize Windows newlines
+  const src = editor.getValue().replace(/\r\n/g, "\n").split("\n").map(l=>l.replace(/\s+$/,'')).join("\n");
+  editor.setValue(src);
+};
+
+/* ============ Tools ============ */
+// Base64
+const b64in = document.getElementById("b64in");
+const b64out = document.getElementById("b64out");
+document.getElementById("b64enc").onclick = ()=>{ b64out.value = btoa(unescape(encodeURIComponent(b64in.value))); };
+document.getElementById("b64dec").onclick = ()=>{ try{ b64out.value = decodeURIComponent(escape(atob(b64in.value))); }catch{ b64out.value="(invalid base64)"; }};
+
+// Hash SHA-256
+async function sha256(text){
+  const data = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+document.getElementById("hashBtn").onclick = async ()=>{
+  document.getElementById("hashOut").value = await sha256(document.getElementById("hashIn").value);
+};
+
+// UUID
+document.getElementById("uuidBtn").onclick = ()=>{
+  document.getElementById("uuidOut").value = crypto.randomUUID();
+};
+
+// JSON Pretty
+document.getElementById("jsonBtn").onclick = ()=>{
+  try{
+    const obj = JSON.parse(document.getElementById("jsonIn").value);
+    document.getElementById("jsonOut").value = JSON.stringify(obj,null,2);
+  }catch(e){
+    document.getElementById("jsonOut").value = "(invalid JSON)";
+  }
+};
+
+// Regex tester
+document.getElementById("reBtn").onclick = ()=>{
+  const p = document.getElementById("rePattern").value;
+  const t = document.getElementById("reText").value;
+  try{
+    const re = new RegExp(p, "g");
+    const matches = [...t.matchAll(re)].map(m=>m[0]);
+    document.getElementById("reOut").value = matches.length? matches.join("\n") : "(no matches)";
+  }catch(e){
+    document.getElementById("reOut").value = "(invalid regex)";
+  }
+};
+
+/* ============ Theme ============ */
+document.getElementById("darkToggle").onchange = (e)=>{
+  editor.setOption("theme", e.target.checked ? "dracula" : "default");
+};
+</script>
+</body>
+</html>
