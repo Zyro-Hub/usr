@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZyroHub — Prashant Pandey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0f14;
+      --panel: #0f1520;
+      --panel-2: #121a26;
+      --card: #111827;
+      --muted: #a3b1c6;
+      --text: #e7eef8;
+      --brand: #6ee7ff;
+      --brand-2: #8b5cf6;
+      --ok: #22c55e; --warn:#f59e0b; --err:#ef4444;
+      --glass: rgba(255,255,255,.06);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius-xl: 18px; --radius-lg: 14px; --radius-md: 12px; --radius-sm: 10px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(139,92,246,.15), transparent),
+        radial-gradient(900px 500px at 100% 0%, rgba(110,231,255,.12), transparent),
+        var(--bg);
+      overflow:hidden;
+    }
+
+    /* ===== Splash / Intro ===== */
+    #splash{position:fixed;inset:0;display:grid;place-items:center;z-index:9999;background:
+      radial-gradient(800px 400px at 50% -10%, rgba(139,92,246,.25), transparent), var(--bg);
+      animation:fadeOut 1.2s ease 2.2s forwards
+    }
+    .logoWrap{text-align:center}
+    .logo{width:110px;height:110px;margin:0 auto 14px;border-radius:28px;position:relative;overflow:hidden;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:var(--shadow);display:grid;place-items:center}
+    .logo svg{width:64px;height:64px;filter:drop-shadow(0 6px 20px rgba(0,0,0,.35))}
+    .pulse{position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle at center, rgba(255,255,255,.25), transparent 60%);animation:pulse 2s infinite ease-in-out}
+    .title{font-weight:800;letter-spacing:.3px;font-size:28px}
+    .subtitle{color:var(--muted);margin-top:6px;font-weight:600}
+    .progress{margin-top:18px;height:6px;width:260px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+    .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--brand),var(--brand-2));animation:load 2s ease forwards}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    @keyframes load{to{width:100%}}
+    @keyframes fadeOut{to{opacity:0;visibility:hidden}}
+
+    /* ===== App Shell ===== */
+    .app{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr;opacity:0;animation:appIn .8s ease 2.2s forwards}
+    @keyframes appIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    header{position:relative;padding:18px clamp(16px, 4vw, 32px);display:flex;gap:16px;align-items:center;backdrop-filter:blur(10px)}
+    .brandMark{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--glass);border:1px solid rgba(255,255,255,.06);border-radius:14px}
+    .brandMark svg{width:28px;height:28px}
+    .brandText{font-weight:800;letter-spacing:.3px}
+
+    .search{margin-left:auto;display:flex;align-items:center;gap:10px;flex:1 1 520px;max-width:720px;background:var(--panel-2);border-radius:999px;padding:10px 14px;border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow)}
+    .search input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:16px;font-weight:500}
+    .kbd{font-size:12px;color:var(--muted);border:1px solid rgba(255,255,255,.12);padding:2px 6px;border-radius:6px}
+
+    .suggest{position:absolute;top:62px;left:240px;right:32px;max-width:720px;margin-left:auto;background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:var(--shadow);display:none;overflow:hidden}
+    .suggest.visible{display:block}
+    .suggestItem{padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;cursor:pointer}
+    .suggestItem:first-child{border-top:0}
+    .suggestItem:hover,.suggestItem[aria-selected="true"]{background:rgba(255,255,255,.07)}
+    .suggestItem small{color:var(--muted);margin-left:auto}
+
+    main{overflow:auto;padding:8px clamp(12px, 3vw, 28px) 28px}
+    .hero{margin:10px 0 18px;padding:18px;background:linear-gradient(120deg, rgba(110,231,255,.08), rgba(139,92,246,.08));border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-xl);display:flex;gap:18px;align-items:center;box-shadow:var(--shadow)}
+    .heroArt{width:62px;height:62px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+    .hero h2{margin:0;font-size:20px}
+    .hero p{margin:6px 0 0;color:var(--muted)}
+
+    .filters{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+    .chip{font-size:12px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);cursor:pointer;user-select:none}
+    .chip.active{outline:2px solid rgba(139,92,246,.6)}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);overflow:hidden;position:relative;transition:transform .2s ease, box-shadow .2s ease;box-shadow:var(--shadow)}
+    .card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.45)}
+
+    /* Strict image containment */
+    .thumb{position:relative;height:140px;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg, rgba(110,231,255,.18), rgba(139,92,246,.18));display:grid;place-items:center}
+    .thumb img{display:block;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;object-position:center center;contain:content;image-rendering:auto}
+    .badge{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.12);padding:6px 10px;font-size:12px;border-radius:999px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18)}
+    .fav{position:absolute;top:10px;right:10px;cursor:pointer;background:rgba(255,255,255,.1);padding:6px;border-radius:999px;border:1px solid rgba(255,255,255,.18)}
+
+    .body{padding:14px}
+    .titleRow{display:flex;align-items:center;gap:10px}
+    .titleRow h3{margin:0;font-size:16px}
+    .tag{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+    .desc{color:var(--muted);font-size:13px;margin:10px 0 14px;min-height:38px}
+    .row{display:flex;align-items:center;gap:10px}
+    .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));color:var(--text);cursor:pointer;font-weight:600;letter-spacing:.2px;transition:transform .15s ease, background .2s ease}
+    .btn:hover{transform:translateY(-1px);background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05))}
+    .btn.ghost{background:transparent}
+
+    footer{color:var(--muted);text-align:center;padding:18px;font-size:12px}
+
+    /* ===== Modal / Viewer ===== */
+    .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);z-index:50}
+    .modal.visible{display:grid}
+    .dialog{width:min(1200px,94vw);height:min(80vh,820px);background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    .dialog header{padding:12px 14px;display:flex;align-items:center;gap:10px;background:var(--panel-2);border-bottom:1px solid rgba(255,255,255,.08)}
+    .dialog h4{margin:0;font-size:14px}
+    .close{margin-left:auto;cursor:pointer;padding:8px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+    .frameWrap{flex:1;background:#000}
+    iframe.toolFrame{width:100%;height:100%;border:0;background:#0b0f14}
+    .viewerToolbar{display:flex;gap:8px;margin-left:auto}
+
+    @media (max-width: 720px){
+      .suggest{left:16px;right:16px}
+      .search{flex-basis:auto}
+      .thumb{height:120px}
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== Splash Intro ===== -->
+  <div id="splash" aria-hidden="true">
+    <div class="logoWrap">
+      <div class="logo"><div class="pulse"></div>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 2L3 7l9 5 9-5-9-5Z" stroke="white" stroke-width="1.5"/>
+          <path d="M3 17l9 5 9-5" stroke="white" stroke-width="1.5" opacity=".8"/>
+          <path d="M3 7v10l9 5 9-5V7" stroke="white" stroke-width="1.5" opacity=".6"/>
+        </svg>
+      </div>
+      <div class="title">ZyroHub</div>
+      <div class="subtitle">Hundreds of tools. One lightning‑fast place.</div>
+      <div class="progress"><div class="bar"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== App Shell ===== -->
+  <div class="app" role="application" aria-label="ZyroHub">
+    <header>
+      <div class="brandMark" title="ZyroHub">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 2L3 7l9 5 9-5-9-5Z" stroke="white" stroke-width="1.5"/>
+          <path d="M3 17l9 5 9-5" stroke="white" stroke-width="1.5" opacity=".8"/>
+          <path d="M3 7v10l9 5 9-5V7" stroke="white" stroke-width="1.5" opacity=".6"/>
+        </svg>
+        <div class="brandText">ZyroHub</div>
+      </div>
+
+      <div class="search" role="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.3-4.3" stroke="white" opacity=".7" stroke-width="1.7" stroke-linecap="round"/><circle cx="11" cy="11" r="7" stroke="white" opacity=".6" stroke-width="1.7"/></svg>
+        <input id="search" type="text" placeholder="Search tools… (press / to focus)" aria-label="Search tools" autocomplete="off" />
+        <span class="kbd">/</span>
+      </div>
+
+      <div class="suggest" id="suggest" role="listbox" aria-label="Search suggestions"></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-label="Featured">
+        <div class="heroArt">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2l7 4v8l-7 4-7-4V6l7-4Z" stroke="white" opacity=".9" stroke-width="1.5"/>
+            <path d="M12 6l3 1.7v3.5L12 13l-3-1.8V7.7L12 6Z" stroke="white" opacity=".7" stroke-width="1.3"/>
+          </svg>
+        </div>
+        <div>
+          <h2>Launchpad</h2>
+          <p>Curated, fast, beautiful. Click any card to open in a modal. Favorites ⭐ to pin, and filter by tags. Admin adds new tools by editing code only.</p>
+        </div>
+      </section>
+
+      <!-- Dynamic filters from tags -->
+      <div id="filters" class="filters" aria-label="Filter by tag"></div>
+
+      <div id="grid" class="grid" aria-live="polite"></div>
+
+      <footer>
+        © 2025 ZyroHub • Built by Prashant Pandey • Contact: <a href="mailto:codex.admim@gmail.com" style="color:inherit">codex.admim@gmail.com</a>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ===== Modal Viewer ===== -->
+  <div class="modal" id="modal" aria-modal="true" aria-hidden="true" role="dialog">
+    <div class="dialog">
+      <header>
+        <span class="chip" id="modalType">EMBED</span>
+        <h4 id="modalTitle">Tool</h4>
+        <div class="viewerToolbar">
+          <button id="openNewTab" class="btn" title="Open in new tab">↗ Open</button>
+        </div>
+        <button class="close" id="closeModal" aria-label="Close">✕</button>
+      </header>
+      <div class="frameWrap" id="frameWrap"><!-- injected iframe or inline app --></div>
+    </div>
+  </div>
+
+  <script>
+    /********************************
+     * Admin-defined Tools (read-only)
+     ********************************/
+    const tools = [
+      {
+        id: 'Python IDE(ADVANCED)',
+        name: 'Advanced python IDE',
+        description: 'Advance python IDE by prashant(hacker theme) fully working! 10+ features',
+        type: 'embed',
+        url: 'https://zyro-hub.github.io/page/python.html',
+        tags: ['editor','platform','free','advanced'],
+        featured: true,
+        image: 'icon.png'
+      },
+      {
+        id: 'Qbasic IDE',
+        name: 'Qbasic Code Editor',
+        description: 'QBasic (Quick Beginners All-purpose Symbolic Instruction Code) is a Microsoft-developed programming language and Integrated DevelopmentEnv ironment (IDE) based on the BASIC programming language',
+        type: 'embed',
+        url: 'https://zyro-hub.github.io/page/qb-hub.html',
+        tags: ['learner','platform','free','editor'],
+        featured: true,
+        image: 'https://substackcdn.com/image/fetch/$s_!ppeU!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2Fedbd5686-338f-4de4-910b-7bbd505393b9_1280x1280.png'
+      },
+     {
+        id: 'Crunchy Roll preminum access',
+        name: 'Crunchy Roll Premium',
+        description: 'Crunchyroll: Crunchyroll is the world’s largest destination for anime and manga, offering streaming, manga, merchandise, and more to millions of fans worldwide.',
+        type: 'embed',
+        url: 'https://zyro-hub.github.io/page/crunchy-roll.html',
+        tags: ['watch','premium','free','free access'],
+        featured: false,
+        image: 'https://apktodo.io/uploads/2023/6/crunchyroll-thumbnail.jpg'
+      }
+    ];
+
+    /********************************
+     * Favorites (user-local only)
+     *******************************=*/
+    const LS_FAV_KEY = 'zyrohub:favorites';
+    const favorites = new Set(JSON.parse(localStorage.getItem(LS_FAV_KEY) || '[]'));
+    function saveFav(){ localStorage.setItem(LS_FAV_KEY, JSON.stringify([...favorites])); }
+
+    /********************************
+     * Utilities & Icons
+     ********************************/
+    function svgThumb(kind='spark'){
+      const map = {
+        spark: `<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12 2l2.3 5 5 .7-3.6 3.7.9 5.3L12 14l-4.6 2.7.9-5.3L4.7 7.7l5-.7L12 2z' stroke='white' opacity='.9' stroke-width='1.3'/></svg>`,
+        play: `<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><circle cx='12' cy='12' r='9' stroke='white' opacity='.9' stroke-width='1.4'/><path d='M10 8l6 4-6 4V8z' fill='white' opacity='.9'/></svg>`,
+        image: `<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='4' width='18' height='14' rx='3' stroke='white' opacity='.9' stroke-width='1.4'/><circle cx='9' cy='10' r='2' fill='white' opacity='.9'/><path d='M5 16l4-4 4 3 3-2 3 3' stroke='white' opacity='.9' stroke-width='1.4'/></svg>`,
+        memo: `<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='4' y='3' width='13' height='18' rx='2' stroke='white' opacity='.9' stroke-width='1.4'/><path d='M7 7h7M7 11h7M7 15h7' stroke='white' opacity='.8' stroke-width='1.4'/><path d='M17 7h3v12a2 2 0 0 1-2 2h-1' stroke='white' opacity='.6' stroke-width='1.4'/></svg>`,
+        mail: `<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><rect x='3' y='5' width='18' height='14' rx='3' stroke='white' opacity='.9' stroke-width='1.4'/><path d='M4 7l8 6 8-6' stroke='white' opacity='.9' stroke-width='1.4'/></svg>`
+      };
+      return map[kind] || map.spark;
+    }
+
+    function iconFor(tool){
+      if (tool.image) return `<img src="${tool.image}" alt="${tool.name}" loading="lazy" decoding="async" fetchpriority="low" style="width:165px;height:165px;object-fit:cover;border-radius:14px;"/>`;
+      if (tool.type === 'embed') return svgThumb('play');
+      if (tool.type === 'local') return svgThumb('memo');
+      if ((tool.id+'').includes('image') || tool.tags?.includes('image')) return svgThumb('image');
+      if (tool.tags?.includes('email')) return svgThumb('mail');
+      return svgThumb('spark');
+    }
+
+    /********************************
+     * Rendering: grid + filters
+     ********************************/
+    const grid = document.getElementById('grid');
+    const filtersEl = document.getElementById('filters');
+
+    function buildTagSet(list){
+      const set = new Set();
+      list.forEach(t => (t.tags||[]).forEach(tag => set.add(tag)));
+      return [...set].sort();
+    }
+
+    let activeTag = null;
+
+    function renderFilters(list){
+      const tags = buildTagSet(list);
+      filtersEl.innerHTML = '';
+      const allChip = document.createElement('div');
+      allChip.className = 'chip' + (!activeTag ? ' active' : '');
+      allChip.textContent = 'All';
+      allChip.addEventListener('click', ()=>{ activeTag=null; render(); });
+      filtersEl.appendChild(allChip);
+      tags.forEach(tag=>{
+        const chip = document.createElement('div');
+        chip.className = 'chip' + (activeTag===tag?' active':'');
+        chip.textContent = tag;
+        chip.addEventListener('click', ()=>{ activeTag = activeTag===tag ? null : tag; render(); });
+        filtersEl.appendChild(chip);
+      });
+    }
+
+    function currentList(){
+      const favd = tools.filter(t=>favorites.has(t.id));
+      const featured = tools.filter(t=>t.featured && !favorites.has(t.id));
+      const rest = tools.filter(t=>!favorites.has(t.id) && !t.featured);
+      return [...favd, ...featured, ...rest];
+    }
+
+    function renderCards(list){
+      grid.innerHTML = '';
+      list.forEach(tool => {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.setAttribute('data-tags', (tool.tags||[]).join(','));
+        card.setAttribute('data-name', tool.name.toLowerCase());
+
+        card.innerHTML = `
+          <div class="thumb">
+            <span class="badge">${tool.type.toUpperCase()}</span>
+            <span class="fav" title="Favorite">${favorites.has(tool.id) ? '⭐' : '☆'}</span>
+            ${iconFor(tool)}
+          </div>
+          <div class="body">
+            <div class="titleRow">
+              <h3>${tool.name}</h3>
+              ${(tool.tags||[]).slice(0,2).map(t=>`<span class='tag'>${t}</span>`).join('')}
+            </div>
+            <div class="desc">${tool.description||''}</div>
+            <div class="row">
+              <button class="btn open">Open</button>
+              <button class="btn ghost details">Details</button>
+            </div>
+          </div>`;
+
+        // Favorite toggle
+        card.querySelector('.fav').addEventListener('click', (e)=>{
+          e.stopPropagation();
+          if (favorites.has(tool.id)) favorites.delete(tool.id); else favorites.add(tool.id);
+          saveFav();
+          render();
+        });
+
+        // Open & Details
+        card.querySelector('.open').addEventListener('click', ()=> openTool(tool));
+        card.querySelector('.details').addEventListener('click', ()=>{
+          alert(`${tool.name}\n\nType: ${tool.type}\nTags: ${(tool.tags||[]).join(', ')}\n\n${tool.description||''}`);
+        });
+
+        grid.appendChild(card);
+      })
+    }
+
+    function render(){
+      let list = currentList();
+      if (activeTag) list = list.filter(t => (t.tags||[]).includes(activeTag));
+      const q = searchInput.value.trim();
+      if (q) list = rankResults(q, list);
+      renderFilters(tools);
+      renderCards(list);
+    }
+
+    /********************************
+     * Search + Suggestions
+     ********************************/
+    const searchInput = document.getElementById('search');
+    const suggest = document.getElementById('suggest');
+
+    function scoreTool(q, t){
+      q = q.toLowerCase().trim();
+      const hay = (t.name + ' ' + (t.tags||[]).join(' ') + ' ' + (t.description||'')).toLowerCase();
+      if (!q) return 0;
+      if (hay.includes(q)) return 100 + (t.featured?3:0);
+      // lightweight fuzzy: all chars in order
+      let idx = -1, m=0; for (const ch of q){ idx = hay.indexOf(ch, idx+1); if (idx>-1) m++; else break; }
+      return m>=Math.max(2, q.length-2) ? 60+m : 0;
+    }
+
+    function resultsFor(q, pool){
+      const list = pool.map(t=>({ t, s: scoreTool(q,t) }))
+                        .filter(x=>x.s>0)
+                        .sort((a,b)=>b.s-a.s);
+      return list.slice(0,8).map(x=>x.t);
+    }
+
+    function rankResults(q, pool){
+      return resultsFor(q, pool);
+    }
+
+    function showSuggest(q){
+      suggest.innerHTML = '';
+      const res = resultsFor(q, tools);
+      if (!q || res.length===0){ suggest.classList.remove('visible'); return; }
+      res.forEach((t,i)=>{
+        const item = document.createElement('div');
+        item.className = 'suggestItem';
+        item.setAttribute('role','option');
+        item.setAttribute('id',`sug-${i}`);
+        item.innerHTML = `<strong>${t.name}</strong> <small>${t.type}</small>`;
+        item.addEventListener('click',()=>{ openTool(t); suggest.classList.remove('visible'); });
+        suggest.appendChild(item);
+      });
+      suggest.classList.add('visible');
+      activeSuggestionIndex = 0; updateActiveSuggestion();
+    }
+
+    // Keyboard navigation in suggestions
+    let activeSuggestionIndex = -1;
+    function updateActiveSuggestion(){
+      [...suggest.children].forEach((el,i)=>{
+        el.setAttribute('aria-selected', i===activeSuggestionIndex ? 'true' : 'false');
+      });
+    }
+
+    searchInput.addEventListener('input', (e)=>{ showSuggest(e.target.value); render(); });
+    searchInput.addEventListener('focus', (e)=> showSuggest(e.target.value));
+
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === '/') { e.preventDefault(); searchInput.focus(); return; }
+      if (!suggest.classList.contains('visible')) return;
+      if (e.key === 'ArrowDown'){ e.preventDefault(); activeSuggestionIndex = Math.min(activeSuggestionIndex+1, suggest.children.length-1); updateActiveSuggestion(); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); activeSuggestionIndex = Math.max(activeSuggestionIndex-1, 0); updateActiveSuggestion(); }
+      else if (e.key === 'Enter'){ e.preventDefault(); if (activeSuggestionIndex>-1){ suggest.children[activeSuggestionIndex].click(); }}
+      else if (e.key === 'Escape'){ suggest.classList.remove('visible'); }
+    });
+
+    document.addEventListener('click', (e)=>{ if (!suggest.contains(e.target) && e.target!==searchInput) suggest.classList.remove('visible'); });
+
+    /********************************
+     * Modal + Open Tool + Routing
+     ********************************/
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalType = document.getElementById('modalType');
+    const frameWrap = document.getElementById('frameWrap');
+    const closeModal = document.getElementById('closeModal');
+    const openNewTabBtn = document.getElementById('openNewTab');
+
+    function openTool(tool){
+      modalTitle.textContent = tool.name;
+      modalType.textContent = tool.type.toUpperCase();
+      frameWrap.innerHTML = '';
+
+      // Open button
+      openNewTabBtn.onclick = () => {
+        const href = tool.type==='embed' ? tool.url : tool.type==='local' ? tool.path : location.href + '#/tool/'+encodeURIComponent(tool.id);
+        window.open(href, '_blank');
+      };
+
+      if (tool.type === 'embed'){
+        const ifr = document.createElement('iframe');
+        ifr.className = 'toolFrame';
+        ifr.referrerPolicy = 'no-referrer';
+        ifr.allow = 'clipboard-read; clipboard-write; microphone; camera; display-capture;';
+        ifr.src = tool.url;
+        const fallback = document.createElement('div');
+        fallback.style.cssText = 'position:absolute;inset:0;display:none;place-items:center;background:#0b0f14;color:#fff;padding:18px;text-align:center';
+        fallback.innerHTML = '<p>Embedding failed or is blocked by this site. Click “Open” ↗ to launch in a new tab.</p>';
+        frameWrap.appendChild(ifr);
+        frameWrap.appendChild(fallback);
+        setTimeout(()=>{ try{ if (!ifr.contentDocument || !ifr.contentDocument.body || !ifr.contentDocument.body.childElementCount){ fallback.style.display='grid'; } }catch{ fallback.style.display='grid'; } }, 3000);
+      }
+      else if (tool.type === 'local'){
+        const ifr = document.createElement('iframe');
+        ifr.className = 'toolFrame';
+        ifr.src = tool.path;
+        frameWrap.appendChild(ifr);
+      }
+      else {
+        frameWrap.innerHTML = `<div class='inlineApp' style='padding:16px'>Unknown tool type.</div>`;
+      }
+
+      modal.classList.add('visible');
+      modal.setAttribute('aria-hidden','false');
+      location.hash = '#/tool/'+encodeURIComponent(tool.id);
+    }
+
+    closeModal.addEventListener('click', ()=>{ closeViewer(); });
+    modal.addEventListener('click', (e)=>{ if (e.target === modal) closeViewer(); });
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') closeViewer(); });
+
+    function closeViewer(){
+      modal.classList.remove('visible');
+      modal.setAttribute('aria-hidden','true');
+      frameWrap.innerHTML='';
+      if (location.hash.startsWith('#/tool/')) history.pushState('', document.title, window.location.pathname + window.location.search);
+    }
+
+    // Simple hash router: #/tool/:id
+    window.addEventListener('hashchange', ()=>{
+      const m = location.hash.match(/^#\/tool\/(.+)$/);
+      if (m){
+        const id = decodeURIComponent(m[1]);
+        const t = tools.find(x=>x.id===id);
+        if (t) openTool(t);
+      }
+    });
+
+    /********************************
+     * Boot
+     ********************************/
+    function boot(){
+      render();
+      setTimeout(()=>{ const s=document.getElementById('splash'); if (s) s.style.display='none'; document.body.style.overflow='auto'; }, 2600);
+      if (location.hash.startsWith('#/tool/')){
+        const id = decodeURIComponent(location.hash.replace('#/tool/',''));
+        const t = tools.find(x=>x.id===id);
+        if (t) setTimeout(()=> openTool(t), 400);
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
